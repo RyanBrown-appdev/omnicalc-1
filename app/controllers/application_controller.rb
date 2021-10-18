@@ -39,15 +39,18 @@ class ApplicationController < ActionController::Base
     @years = params.fetch("years").to_f
     @principal = params.fetch("principal").to_f
 
-    @final_apr =('%.4f' % @apr) + "%"#.to_s(:percentage)
-    @final_year = @years.to_i
+    @final_apr =('%.4f' % @apr.round(4)) + "%"#.to_s(:percentage)
+    @final_year = @years.to_i.to_s
     @final_principal = @principal.to_s(:currency)
     n = @years.to_i * 12
-    i = @apr / 100
-    r = i / n
-    nn = @principal * r * (1 + r) ** n
-    d = (1 + r) ** n - 1
-    @final_paymnet = (nn / d).to_s(:currency)
+    r = @apr / n
+    nn = r * @principal
+    d = 1 - (1 + r) ** -n
+    rate = @apr / 100
+    i = (1+rate/12)**(12/12)-1
+    annuity = (1-(1/(1+i))**n)/i 
+    payment = @principal/annuity
+    @final_paymnet = payment.to_s(:currency)
     render({:template  => "calculation_templates/payment_results.html.erb"})
   end
 
